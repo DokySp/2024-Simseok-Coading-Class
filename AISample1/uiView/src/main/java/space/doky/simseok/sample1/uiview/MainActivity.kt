@@ -11,7 +11,7 @@ import com.google.firebase.database.getValue
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import space.doky.simseok.sample1.uiview.databinding.ActivityMainBinding
-import space.doky.simseok.sample1.util.AIAppLog
+import space.doky.simseok.sample1.uiview.util.AIAppLog
 
 
 class MainActivity : AppCompatActivity() {
@@ -19,39 +19,39 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val db = Firebase.database
     private var client: DatabaseReference? = null
-    private var isChatInit = false
+    private var clientListener: ValueEventListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
+        // 로그인 버튼
         binding.buttonLogIn.setOnClickListener {
             logIn()
         }
 
+        // 전송 버튼
         binding.buttonSend.setOnClickListener {
-            if (!isChatInit) {
-                addListener()
-            }
             sendMessage("${binding.inputBoxMessage.text}")
         }
     }
-
-
 
     private fun logIn() {
         if (binding.inputBoxId.text.isEmpty()) {
             AIAppLog.e(TAG, "logIn", "empty id")
             return
         }
+        stopChat()
 
-        client = db.getReference("id::${binding.inputBoxId.text}")
-        AIAppLog.d(TAG, "logIn", "start to chat")
-        AIAppLog.d(TAG, "logIn", "client info: $client")
-
-        isChatInit = false
-        client?.removeEventListener(getListener())
+        val id = "id::${binding.inputBoxId.text}"
+        startChat(id)
     }
+
+
+
+    // =============================================================================================
+
+
 
     private fun sendMessage(message: String) {
         if (client == null) {
@@ -63,23 +63,36 @@ class MainActivity : AppCompatActivity() {
         AIAppLog.d(TAG, "main", "client info: $client")
     }
 
-    private fun addListener() {
-        AIAppLog.d(TAG, "addListener", "start to listen")
-        isChatInit = true
-        client?.addValueEventListener(getListener())
-    }
+    private fun startChat(id: String) {
+        client = db.getReference(id)
+        AIAppLog.d(TAG, "startToChat", "client id: $id")
 
-    private fun getListener() = object : ValueEventListener {
-        override fun onDataChange(dataSnapshot: DataSnapshot) {
-            val value = dataSnapshot.getValue<String>()
-            AIAppLog.d(TAG, "getListener", "Value is: $value")
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            // Failed to read value
-            AIAppLog.w(TAG, "onCancelled", "Failed to read value. ${error.toException()}")
+        clientListener = buildListener()
+        clientListener?.let { listener ->
+            AIAppLog.d(TAG, "startToChat", "start to listen")
+            client?.addValueEventListener(listener)
         }
     }
+
+    private fun stopChat() {
+        clientListener?.let { listener ->
+            AIAppLog.d(TAG, "stopToChat", "stop to listen")
+            client?.removeEventListener(listener)
+        }
+    }
+
+    private fun buildListener(): ValueEventListener =
+        object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val value = dataSnapshot.getValue<String>()
+                AIAppLog.d(TAG, "buildListener", "value: $value")
+                binding.chatMessage.text = "server -> $value"
+            }
+            override fun onCancelled(error: DatabaseError) {
+                // Failed to read value
+                AIAppLog.w(TAG, "buildListener", "Failed to read value. ${error.toException()}")
+            }
+        }
 
     companion object {
         private val TAG = MainActivity::class.java.simpleName

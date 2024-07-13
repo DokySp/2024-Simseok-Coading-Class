@@ -55,11 +55,4 @@ dependencies {
     // Add the dependency for the Realtime Database library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation(libs.google.firebase.database.ktx)
-
-    implementation(project(":uiViewModel"))
-    implementation(project(":domain"))
-    implementation(project(":data"))
-    implementation(project(":util"))
-    implementation(project(":entity"))
-    implementation(project(":util"))
 }

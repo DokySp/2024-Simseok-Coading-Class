@@ -22,9 +22,3 @@ dependencyResolutionManagement {
 rootProject.name = "AI Sample 1"
 include(":app")
 include(":uiView")
-include(":uiViewModel")
-include(":domain")
-include(":data")
-include(":util")
-include(":entity")
-include(":uiView")

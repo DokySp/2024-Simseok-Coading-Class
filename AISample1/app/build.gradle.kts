@@ -53,10 +53,4 @@ dependencies {
 
     // dependency
     implementation(project(":uiView"))
-    implementation(project(":uiViewModel"))
-    implementation(project(":domain"))
-    implementation(project(":data"))
-    implementation(project(":util"))
-    implementation(project(":entity"))
-    implementation(project(":util"))
 }
